@@ -1,0 +1,638 @@
+/* Telegram Web App — TradeZone (тёмная тема) */
+:root {
+    --tg-theme-bg-color: #1c1c1e;
+    --tg-theme-text-color: #f2f2f7;
+    --tg-theme-hint-color: #8e8e93;
+    --tg-theme-link-color: #0a84ff;
+    --tg-theme-button-color: #0a84ff;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-secondary-bg-color: #2c2c2e;
+    --header-height: 56px;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --border-color: #38383a;
+    --success: #30d158;
+    --danger: #ff453a;
+    --warning: #ff9f0a;
+}
+
+/* Fallback если WebApp не передал тему */
+body {
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+    min-height: 100vh;
+    padding-bottom: 80px;
+    padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Header */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--tg-theme-bg-color);
+    border-bottom: 1px solid var(--tg-theme-secondary-bg-color);
+    min-height: var(--header-height);
+}
+
+.header-stats-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.header-title .title-z {
+    color: var(--danger);
+}
+
+.header-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 1.43rem;
+}
+
+.header-stats .balance-pct,
+.header-stats .balance-points {
+    font-weight: 600;
+}
+
+.deposit-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 0;
+}
+
+.deposit-label {
+    font-size: 0.75rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.deposit-row-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.deposit-row-header .deposit-input {
+    width: 100px;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+}
+
+.deposit-row-header .btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.deposits-history-wrap {
+    margin-top: 8px;
+    width: 100%;
+    max-width: 220px;
+}
+
+.deposits-history-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.deposits-history-header:active {
+    opacity: 0.8;
+}
+
+.deposits-history-toggle-icon {
+    font-size: 0.7rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.deposits-history-label {
+    flex: 1;
+}
+
+.deposits-history-body {
+    margin-top: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.deposits-history-wrap.collapsed .deposits-history-body {
+    display: none;
+}
+
+.deposits-history-wrap .deposits-list {
+    margin-top: 0;
+}
+
+.deposits-history-wrap .deposit-item {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+}
+
+.deposits-history-wrap .deposits-empty {
+    padding: 10px;
+    font-size: 0.8rem;
+}
+
+.balance-section {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.balance-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.balance-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+}
+
+.balance-pct,
+.balance-points {
+    color: var(--tg-theme-hint-color);
+}
+
+.balance-pct.profit,
+.balance-points.profit { color: var(--success); }
+.balance-pct.loss,
+.balance-points.loss { color: var(--danger); }
+.balance-pct.neutral,
+.balance-points.neutral { color: var(--tg-theme-hint-color); }
+
+.balance-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.balance-value.profit { color: var(--success); }
+.balance-value.loss { color: var(--danger); }
+.balance-value.neutral { color: var(--tg-theme-text-color); }
+
+.deposits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.deposit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--tg-theme-bg-color);
+    border-radius: var(--radius-sm);
+}
+
+.deposit-item-date {
+    font-size: 0.9rem;
+    color: var(--tg-theme-text-color);
+    flex: 1;
+}
+
+.deposit-item-amount {
+    font-weight: 600;
+    color: var(--success);
+}
+
+.btn-remove-deposit {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+    border-radius: 50%;
+}
+
+.deposits-empty {
+    text-align: center;
+    padding: 16px;
+    color: var(--tg-theme-hint-color);
+    font-size: 0.9rem;
+}
+
+/* Main */
+.main {
+    padding: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tg-theme-text-color);
+}
+
+.section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.section-header .section-title { margin-bottom: 0; }
+
+/* Deposit (in header) - deposit-row also used in balance section if needed */
+.deposit-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.deposit-input {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Inputs */
+.input,
+.select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--tg-theme-secondary-bg-color);
+    border-radius: var(--radius-sm);
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus,
+.select:focus {
+    outline: none;
+    border-color: var(--tg-theme-button-color);
+    box-shadow: 0 0 0 2px rgba(36, 129, 204, 0.2);
+}
+
+.input::placeholder {
+    color: var(--tg-theme-hint-color);
+}
+
+.input.invalid {
+    border-color: var(--danger);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.btn-secondary {
+    background: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+.btn-text {
+    background: transparent;
+    color: var(--tg-theme-link-color);
+}
+
+.btn-icon .icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Chart */
+.chart-section {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.chart-wrap {
+    position: relative;
+    height: 220px;
+    width: 100%;
+}
+
+#balance-chart {
+    max-height: 220px;
+}
+
+/* Trades list */
+.trades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trades-list-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--tg-theme-secondary-bg-color);
+}
+
+.pagination .btn {
+    min-width: 100px;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.pagination .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.trade-card {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: slideIn 0.3s ease;
+}
+
+.trade-card.removing {
+    animation: slideOut 0.25s ease forwards;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+}
+
+.trade-card.profit { border-left: 4px solid var(--success); }
+.trade-card.loss { border-left: 4px solid var(--danger); }
+.trade-card.zero { border-left: 4px solid var(--tg-theme-hint-color); }
+
+.trade-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 52px;
+}
+
+.trade-header:active {
+    background: rgba(0,0,0,0.05);
+}
+
+.toggle-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--tg-theme-hint-color);
+    transition: transform 0.2s ease;
+}
+
+.trade-card.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.trade-header-summary {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.trade-date-short {
+    font-size: 0.9rem;
+    color: var(--tg-theme-text-color);
+}
+
+.trade-asset-short {
+    font-size: 0.85rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.trade-result-short {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-left: auto;
+}
+
+.trade-result-short.positive { color: var(--success); }
+.trade-result-short.negative { color: var(--danger); }
+.trade-result-short.zero { color: var(--tg-theme-hint-color); }
+
+.trade-points-short {
+    font-size: 0.8rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.trade-body {
+    padding: 0 16px 16px 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.trade-card.collapsed .trade-body {
+    display: none;
+}
+
+.trade-fields {
+    padding-top: 14px;
+    display: grid;
+    gap: 12px;
+}
+
+.trade-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.trade-field label {
+    font-size: 0.8rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.trade-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.trade-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.trade-actions .btn {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+}
+
+/* Filter */
+.trades-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.filter-select {
+    width: auto;
+    min-width: 120px;
+    padding: 10px 12px;
+}
+
+/* Bottom actions */
+.bottom-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--tg-theme-secondary-bg-color);
+}
+
+.bottom-actions .btn {
+    width: 100%;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    background: var(--tg-theme-bg-color);
+    border-top: 1px solid var(--tg-theme-secondary-bg-color);
+    text-align: center;
+}
+
+/* Empty state */
+.trades-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--tg-theme-hint-color);
+    font-size: 0.95rem;
+}
+
+/* Desktop: как мобильная — узкая колонка по центру */
+@media (min-width: 481px) {
+    .header {
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .header-title { font-size: 1.1rem; }
+    .deposit-block { width: 100%; align-items: stretch; }
+    .deposit-row-header { flex-wrap: wrap; }
+    .deposit-row-header .deposit-input { flex: 1; min-width: 80px; }
+    .balance-value { font-size: 1.3rem; }
+    .section-header { flex-direction: column; align-items: stretch; }
+    .trades-actions { flex-direction: column; }
+    .filter-select { width: 100%; }
+}

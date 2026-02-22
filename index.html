@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TradeZone</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <header class="header">
+            <h1 class="header-title">📊 Trade<span class="title-z">Z</span>one</h1>
+            <div class="header-stats-wrap">
+                <div class="header-stats">
+                    <span id="balance-pct" class="balance-pct">0%</span>
+                    <span id="balance-points" class="balance-points">0 пт</span>
+                </div>
+            </div>
+            <div class="deposit-block">
+                <span class="deposit-label">Депозиты</span>
+                <div class="deposit-row deposit-row-header">
+                    <input type="number" id="deposit-input" class="input deposit-input" placeholder="Сумма" step="0.01" min="0" inputmode="decimal">
+                    <button type="button" id="set-deposit-btn" class="btn btn-primary">Добавить</button>
+                </div>
+                <div id="deposits-history-wrap" class="deposits-history-wrap collapsed">
+                    <div class="deposits-history-header" id="deposits-history-toggle">
+                        <span class="deposits-history-toggle-icon">▶</span>
+                        <span class="deposits-history-label">История депозитов</span>
+                        <span class="deposits-history-count" id="deposits-count">(0)</span>
+                    </div>
+                    <div class="deposits-history-body">
+                        <div id="deposits-list" class="deposits-list"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Баланс -->
+            <section class="section balance-section">
+                <h2 class="section-title">Баланс</h2>
+                <div class="balance-display">
+                    <span id="balance-value" class="balance-value">0</span>
+                </div>
+            </section>
+
+            <!-- График -->
+            <section class="section chart-section">
+                <h2 class="section-title">График баланса</h2>
+                <div class="chart-wrap">
+                    <canvas id="balance-chart" aria-label="График изменения баланса"></canvas>
+                </div>
+            </section>
+
+            <!-- Сделки -->
+            <section class="section trades-section">
+                <div class="section-header">
+                    <h2 class="section-title">Сделки</h2>
+                    <div class="trades-actions">
+                        <select id="filter-asset" class="select filter-select" title="Фильтр по активу">
+                            <option value="">Все активы</option>
+                            <option value="BTC/USD">BTC/USD</option>
+                            <option value="ETH/USD">ETH/USD</option>
+                            <option value="EUR/USD">EUR/USD</option>
+                            <option value="Gold">Gold</option>
+                        </select>
+                        <button type="button" id="add-trade-btn" class="btn btn-primary btn-icon" title="Добавить сделку">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Добавить сделку
+                        </button>
+                    </div>
+                </div>
+
+                <div id="trades-list" class="trades-list">
+                    <!-- Сделки рендерятся через JS -->
+                </div>
+
+                <div class="bottom-actions">
+                    <button type="button" id="export-json-btn" class="btn btn-secondary">Экспорт в JSON</button>
+                    <button type="button" id="share-result-btn" class="btn btn-primary">Поделиться результатом</button>
+                    <button type="button" id="clear-history-btn" class="btn btn-secondary">Очистить историю сделок</button>
+                    <button type="button" id="clear-all-btn" class="btn btn-danger">Удалить все данные</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <button type="button" id="close-app-btn" class="btn btn-text">Закрыть</button>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

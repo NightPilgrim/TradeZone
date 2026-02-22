@@ -615,8 +615,15 @@
 
     function getShareUrl() {
         const payload = { d: getDeposits(), t: getTrades() };
+        const jsonStr = JSON.stringify(payload);
         const base = location.origin + location.pathname;
-        return base + '?view=1#' + encodeURIComponent(JSON.stringify(payload));
+        let hash;
+        if (typeof LZString !== 'undefined' && LZString.compressToEncodedURIComponent) {
+            hash = LZString.compressToEncodedURIComponent(jsonStr);
+        } else {
+            hash = encodeURIComponent(jsonStr);
+        }
+        return base + '?view=1#' + hash;
     }
 
     function shareResult() {
@@ -742,7 +749,14 @@
             return;
         }
         try {
-            const data = JSON.parse(decodeURIComponent(hash));
+            let jsonStr;
+            if (typeof LZString !== 'undefined' && LZString.decompressFromEncodedURIComponent) {
+                jsonStr = LZString.decompressFromEncodedURIComponent(hash);
+            }
+            if (!jsonStr) {
+                jsonStr = decodeURIComponent(hash);
+            }
+            const data = JSON.parse(jsonStr);
             snapshotDeposits = Array.isArray(data.d) ? data.d : [];
             snapshotTrades = Array.isArray(data.t) ? data.t : [];
             viewOnlyMode = true;

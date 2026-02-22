@@ -610,6 +610,48 @@ body {
     font-size: 0.95rem;
 }
 
+/* View-only mode (shared link) */
+body.view-only .deposit-row-header {
+    display: none;
+}
+
+body.view-only .trades-actions #add-trade-btn {
+    display: none;
+}
+
+body.view-only .bottom-actions {
+    display: none;
+}
+
+.view-only-badge {
+    display: block;
+    text-align: center;
+    padding: 8px 12px;
+    margin: 0 16px 12px;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    color: var(--tg-theme-hint-color);
+}
+
+.trade-fields-readonly .trade-field {
+    margin-bottom: 10px;
+}
+
+.trade-fields-readonly .trade-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--tg-theme-hint-color);
+    margin-bottom: 2px;
+}
+
+.trade-fields-readonly .trade-value {
+    font-size: 1rem;
+}
+
+.trade-fields-readonly .trade-value.positive { color: var(--success); }
+.trade-fields-readonly .trade-value.negative { color: var(--danger); }
+
 /* Desktop: как мобильная — узкая колонка по центру */
 @media (min-width: 481px) {
     .header {

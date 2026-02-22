@@ -10,6 +10,9 @@
     let tg = null;
     let chart = null;
     let currentTradesPage = 1;
+    let viewOnlyMode = false;
+    let snapshotDeposits = [];
+    let snapshotTrades = [];
 
     function migrateDepositToDeposits() {
         const oldVal = localStorage.getItem(STORAGE_DEPOSIT);
@@ -30,6 +33,7 @@
     }
 
     function getDeposits() {
+        if (viewOnlyMode) return snapshotDeposits;
         try {
             const raw = localStorage.getItem(STORAGE_DEPOSITS);
             const arr = raw ? JSON.parse(raw) : [];
@@ -40,6 +44,7 @@
     }
 
     function saveDeposits(deposits) {
+        if (viewOnlyMode) return;
         localStorage.setItem(STORAGE_DEPOSITS, JSON.stringify(deposits));
     }
 
@@ -104,6 +109,7 @@
     }
 
     function getTrades() {
+        if (viewOnlyMode) return snapshotTrades;
         try {
             const raw = localStorage.getItem(STORAGE_TRADES);
             const arr = raw ? JSON.parse(raw) : [];
@@ -114,6 +120,7 @@
     }
 
     function saveTrades(trades) {
+        if (viewOnlyMode) return;
         localStorage.setItem(STORAGE_TRADES, JSON.stringify(trades));
     }
 
@@ -287,8 +294,9 @@
         return n > 0 ? 'positive' : 'negative';
     }
 
-    function createTradeCard(trade, expanded) {
+    function createTradeCard(trade, expanded, viewOnly) {
         const isExpanded = !!expanded;
+        const readOnly = !!viewOnly;
         const card = document.createElement('div');
         card.className = 'trade-card ' + (isExpanded ? '' : 'collapsed ') + resultClass(trade.result);
         card.dataset.id = trade.id;
@@ -319,135 +327,150 @@
         const body = document.createElement('div');
         body.className = 'trade-body';
 
-        const dateId = 'date-' + trade.id;
-        const timeId = 'time-' + trade.id;
-        const assetId = 'asset-' + trade.id;
-        const resultId = 'result-' + trade.id;
-        const pointsId = 'points-' + trade.id;
-        const sizeId = 'size-' + trade.id;
+        if (readOnly) {
+            const sizeVal = (trade.positionSize !== undefined && trade.positionSize !== '') ? trade.positionSize : '0.1';
+            body.innerHTML =
+                '<div class="trade-fields trade-fields-readonly">' +
+                '<div class="trade-field trade-field-row">' +
+                '<div class="trade-field"><span class="trade-label">Дата</span><span class="trade-value">' + (trade.date || '—') + '</span></div>' +
+                '<div class="trade-field"><span class="trade-label">Время</span><span class="trade-value">' + (trade.time || '—') + '</span></div>' +
+                '</div>' +
+                '<div class="trade-field"><span class="trade-label">Актив</span><span class="trade-value">' + (trade.asset || '—') + '</span></div>' +
+                '<div class="trade-field"><span class="trade-label">Результат</span><span class="trade-value ' + resultClass(trade.result) + '">' + resultStr + '</span></div>' +
+                '<div class="trade-field"><span class="trade-label">Пункты</span><span class="trade-value">' + (pointsStr || '—') + '</span></div>' +
+                '<div class="trade-field"><span class="trade-label">Размер позиции</span><span class="trade-value">' + sizeVal + '</span></div>' +
+                '</div>';
+        } else {
+            const dateId = 'date-' + trade.id;
+            const timeId = 'time-' + trade.id;
+            const assetId = 'asset-' + trade.id;
+            const resultId = 'result-' + trade.id;
+            const pointsId = 'points-' + trade.id;
+            const sizeId = 'size-' + trade.id;
 
-        body.innerHTML =
-            '<div class="trade-fields">' +
-            '<div class="trade-field trade-field-row">' +
-            '<div class="trade-field"><label for="' + dateId + '">Дата</label><input type="date" id="' + dateId + '" class="input" value="' + (trade.date || formatDate()) + '"></div>' +
-            '<div class="trade-field"><label for="' + timeId + '">Время</label><input type="time" id="' + timeId + '" class="input" value="' + (trade.time || formatTime()) + '"></div>' +
-            '</div>' +
-            '<div class="trade-field">' +
-            '<label for="' + assetId + '">Актив</label>' +
-            '<select id="' + assetId + '" class="select trade-asset-select">' +
-            '<option value="">— Выберите —</option>' +
-            ASSETS.map(a => '<option value="' + a + '"' + (trade.asset === a ? ' selected' : '') + '>' + a + '</option>').join('') +
-            '<option value="__custom__">Свой вариант...</option>' +
-            '</select>' +
-            '<input type="text" id="' + assetId + '-custom" class="input trade-asset-custom" placeholder="Введите актив" value="' + (ASSETS.includes(trade.asset) ? '' : (trade.asset || '')) + '" style="' + (ASSETS.includes(trade.asset) ? 'display:none' : '') + '">' +
-            '</div>' +
-            '<div class="trade-field">' +
-            '<label for="' + resultId + '">Результат (±)</label>' +
-            '<input type="number" id="' + resultId + '" class="input" step="0.01" inputmode="decimal" value="' + (trade.result !== undefined && trade.result !== '' ? trade.result : '') + '" placeholder="+100 или -50">' +
-            '</div>' +
-            '<div class="trade-field">' +
-            '<label for="' + pointsId + '">Результат в пунктах</label>' +
-            '<input type="number" id="' + pointsId + '" class="input" step="1" inputmode="numeric" value="' + (trade.points !== undefined && trade.points !== '' ? trade.points : '') + '" placeholder="+25 или -15">' +
-            '</div>' +
-            '<div class="trade-field">' +
-            '<label for="' + sizeId + '">Размер позиции (опц.)</label>' +
-            '<input type="number" id="' + sizeId + '" class="input" step="0.01" min="0" inputmode="decimal" value="' + (trade.positionSize !== undefined && trade.positionSize !== '' ? trade.positionSize : '0.1') + '" placeholder="0.1">' +
-            '</div>' +
-            '</div>' +
-            '<div class="trade-actions">' +
-            '<button type="button" class="btn btn-primary btn-save-trade">Сохранить</button>' +
-            '<button type="button" class="btn btn-danger btn-delete-trade">Удалить</button>' +
-            '</div>';
+            body.innerHTML =
+                '<div class="trade-fields">' +
+                '<div class="trade-field trade-field-row">' +
+                '<div class="trade-field"><label for="' + dateId + '">Дата</label><input type="date" id="' + dateId + '" class="input" value="' + (trade.date || formatDate()) + '"></div>' +
+                '<div class="trade-field"><label for="' + timeId + '">Время</label><input type="time" id="' + timeId + '" class="input" value="' + (trade.time || formatTime()) + '"></div>' +
+                '</div>' +
+                '<div class="trade-field">' +
+                '<label for="' + assetId + '">Актив</label>' +
+                '<select id="' + assetId + '" class="select trade-asset-select">' +
+                '<option value="">— Выберите —</option>' +
+                ASSETS.map(a => '<option value="' + a + '"' + (trade.asset === a ? ' selected' : '') + '>' + a + '</option>').join('') +
+                '<option value="__custom__">Свой вариант...</option>' +
+                '</select>' +
+                '<input type="text" id="' + assetId + '-custom" class="input trade-asset-custom" placeholder="Введите актив" value="' + (ASSETS.includes(trade.asset) ? '' : (trade.asset || '')) + '" style="' + (ASSETS.includes(trade.asset) ? 'display:none' : '') + '">' +
+                '</div>' +
+                '<div class="trade-field">' +
+                '<label for="' + resultId + '">Результат (±)</label>' +
+                '<input type="number" id="' + resultId + '" class="input" step="0.01" inputmode="decimal" value="' + (trade.result !== undefined && trade.result !== '' ? trade.result : '') + '" placeholder="+100 или -50">' +
+                '</div>' +
+                '<div class="trade-field">' +
+                '<label for="' + pointsId + '">Результат в пунктах</label>' +
+                '<input type="number" id="' + pointsId + '" class="input" step="1" inputmode="numeric" value="' + (trade.points !== undefined && trade.points !== '' ? trade.points : '') + '" placeholder="+25 или -15">' +
+                '</div>' +
+                '<div class="trade-field">' +
+                '<label for="' + sizeId + '">Размер позиции (опц.)</label>' +
+                '<input type="number" id="' + sizeId + '" class="input" step="0.01" min="0" inputmode="decimal" value="' + (trade.positionSize !== undefined && trade.positionSize !== '' ? trade.positionSize : '0.1') + '" placeholder="0.1">' +
+                '</div>' +
+                '</div>' +
+                '<div class="trade-actions">' +
+                '<button type="button" class="btn btn-primary btn-save-trade">Сохранить</button>' +
+                '<button type="button" class="btn btn-danger btn-delete-trade">Удалить</button>' +
+                '</div>';
 
-        const assetSelect = body.querySelector('.trade-asset-select');
-        const assetCustom = body.querySelector('.trade-asset-custom');
-        if (assetSelect && assetCustom) {
-            assetSelect.addEventListener('change', function () {
-                const isCustom = assetSelect.value === '__custom__';
-                assetCustom.style.display = isCustom ? 'block' : 'none';
-                if (!isCustom) assetCustom.value = '';
-            });
-        }
-
-        function updateCardHeader() {
-            const dateEl = document.getElementById(dateId);
-            const timeEl = document.getElementById(timeId);
-            const resultEl = document.getElementById(resultId);
-            let asset = assetSelect ? assetSelect.value : '';
-            if (asset === '__custom__' && assetCustom) asset = assetCustom.value.trim() || asset;
-            const resultVal = resultEl ? resultEl.value : trade.result;
-            const resultNum = parseNum(resultVal);
-            const resultStr = isNaN(resultNum) ? '0' : (resultNum >= 0 ? '+' : '') + resultNum;
-            const pointsEl = document.getElementById(pointsId);
-            const pointsVal = pointsEl ? pointsEl.value : trade.points;
-            const pointsNum = parseNum(pointsVal);
-            const pointsStr = (pointsVal !== undefined && pointsVal !== '') ? (isNaN(pointsNum) ? pointsVal : (pointsNum >= 0 ? '+' : '') + pointsNum + ' пт') : '';
-            const summary = card.querySelector('.trade-header-summary');
-            if (summary) {
-                summary.innerHTML =
-                    '<span class="trade-date-short">' + formatDateShort(dateEl ? dateEl.value : trade.date, timeEl ? timeEl.value : trade.time) + '</span>' +
-                    '<span class="trade-asset-short">' + (asset || '—') + '</span>' +
-                    '<span class="trade-result-short ' + resultClass(resultVal) + '">' + resultStr + '</span>' +
-                    (pointsStr ? '<span class="trade-points-short">' + pointsStr + '</span>' : '');
+            const assetSelect = body.querySelector('.trade-asset-select');
+            const assetCustom = body.querySelector('.trade-asset-custom');
+            if (assetSelect && assetCustom) {
+                assetSelect.addEventListener('change', function () {
+                    const isCustom = assetSelect.value === '__custom__';
+                    assetCustom.style.display = isCustom ? 'block' : 'none';
+                    if (!isCustom) assetCustom.value = '';
+                });
             }
-            card.className = 'trade-card ' + resultClass(resultVal) + (card.classList.contains('collapsed') ? ' collapsed' : '');
-        }
 
-        function collectAndSave() {
-            const dateEl = document.getElementById(dateId);
-            const timeEl = document.getElementById(timeId);
-            const resultEl = document.getElementById(resultId);
-            const pointsEl = document.getElementById(pointsId);
-            const sizeEl = document.getElementById(sizeId);
-            let asset = assetSelect ? assetSelect.value : '';
-            if (asset === '__custom__' && assetCustom) asset = assetCustom.value.trim() || asset;
-            const trades = getTrades();
-            const idx = trades.findIndex(t => t.id === trade.id);
-            if (idx === -1) return;
-            trades[idx] = {
-                id: trade.id,
-                date: dateEl ? dateEl.value : trade.date,
-                time: timeEl ? timeEl.value : trade.time,
-                asset: asset,
-                result: resultEl ? resultEl.value : trade.result,
-                points: pointsEl ? pointsEl.value : trade.points,
-                positionSize: sizeEl ? sizeEl.value : trade.positionSize
-            };
-            saveTrades(trades);
-            updateBalance();
-            renderChart();
-            updateCardHeader();
-        }
-
-        [dateId, timeId, resultId, pointsId, sizeId].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('change', collectAndSave);
-        });
-        if (assetSelect) assetSelect.addEventListener('change', collectAndSave);
-        if (assetCustom) assetCustom.addEventListener('blur', collectAndSave);
-
-        const saveBtn = body.querySelector('.btn-save-trade');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function () {
-                collectAndSave();
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp && Telegram.WebApp.showPopup) {
-                    Telegram.WebApp.showPopup({ title: 'Сохранено', message: 'Сделка обновлена.' });
+            function updateCardHeader() {
+                const dateEl = document.getElementById(dateId);
+                const timeEl = document.getElementById(timeId);
+                const resultEl = document.getElementById(resultId);
+                let asset = assetSelect ? assetSelect.value : '';
+                if (asset === '__custom__' && assetCustom) asset = assetCustom.value.trim() || asset;
+                const resultVal = resultEl ? resultEl.value : trade.result;
+                const resultNum = parseNum(resultVal);
+                const resultStr = isNaN(resultNum) ? '0' : (resultNum >= 0 ? '+' : '') + resultNum;
+                const pointsEl = document.getElementById(pointsId);
+                const pointsVal = pointsEl ? pointsEl.value : trade.points;
+                const pointsNum = parseNum(pointsVal);
+                const pointsStr = (pointsVal !== undefined && pointsVal !== '') ? (isNaN(pointsNum) ? pointsVal : (pointsNum >= 0 ? '+' : '') + pointsNum + ' пт') : '';
+                const summary = card.querySelector('.trade-header-summary');
+                if (summary) {
+                    summary.innerHTML =
+                        '<span class="trade-date-short">' + formatDateShort(dateEl ? dateEl.value : trade.date, timeEl ? timeEl.value : trade.time) + '</span>' +
+                        '<span class="trade-asset-short">' + (asset || '—') + '</span>' +
+                        '<span class="trade-result-short ' + resultClass(resultVal) + '">' + resultStr + '</span>' +
+                        (pointsStr ? '<span class="trade-points-short">' + pointsStr + '</span>' : '');
                 }
-            });
-        }
+                card.className = 'trade-card ' + resultClass(resultVal) + (card.classList.contains('collapsed') ? ' collapsed' : '');
+            }
 
-        const delBtn = body.querySelector('.btn-delete-trade');
-        if (delBtn) {
-            delBtn.addEventListener('click', function () {
-                card.classList.add('removing');
-                setTimeout(function () {
-                    const trades = getTrades().filter(t => t.id !== trade.id);
-                    saveTrades(trades);
-                    updateBalance();
-                    renderChart();
-                    renderTradesList();
-                }, 260);
+            function collectAndSave() {
+                const dateEl = document.getElementById(dateId);
+                const timeEl = document.getElementById(timeId);
+                const resultEl = document.getElementById(resultId);
+                const pointsEl = document.getElementById(pointsId);
+                const sizeEl = document.getElementById(sizeId);
+                let asset = assetSelect ? assetSelect.value : '';
+                if (asset === '__custom__' && assetCustom) asset = assetCustom.value.trim() || asset;
+                const trades = getTrades();
+                const idx = trades.findIndex(t => t.id === trade.id);
+                if (idx === -1) return;
+                trades[idx] = {
+                    id: trade.id,
+                    date: dateEl ? dateEl.value : trade.date,
+                    time: timeEl ? timeEl.value : trade.time,
+                    asset: asset,
+                    result: resultEl ? resultEl.value : trade.result,
+                    points: pointsEl ? pointsEl.value : trade.points,
+                    positionSize: sizeEl ? sizeEl.value : trade.positionSize
+                };
+                saveTrades(trades);
+                updateBalance();
+                renderChart();
+                updateCardHeader();
+            }
+
+            [dateId, timeId, resultId, pointsId, sizeId].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', collectAndSave);
             });
+            if (assetSelect) assetSelect.addEventListener('change', collectAndSave);
+            if (assetCustom) assetCustom.addEventListener('blur', collectAndSave);
+
+            const saveBtn = body.querySelector('.btn-save-trade');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function () {
+                    collectAndSave();
+                    if (typeof Telegram !== 'undefined' && Telegram.WebApp && Telegram.WebApp.showPopup) {
+                        Telegram.WebApp.showPopup({ title: 'Сохранено', message: 'Сделка обновлена.' });
+                    }
+                });
+            }
+
+            const delBtn = body.querySelector('.btn-delete-trade');
+            if (delBtn) {
+                delBtn.addEventListener('click', function () {
+                    card.classList.add('removing');
+                    setTimeout(function () {
+                        const trades = getTrades().filter(t => t.id !== trade.id);
+                        saveTrades(trades);
+                        updateBalance();
+                        renderChart();
+                        renderTradesList();
+                    }, 260);
+                });
+            }
         }
 
         card.appendChild(header);
@@ -479,7 +502,7 @@
             return;
         }
         pageList.forEach(function (t) {
-            listWrap.appendChild(createTradeCard(t, t.id === expandTradeId));
+            listWrap.appendChild(createTradeCard(t, t.id === expandTradeId, viewOnlyMode));
         });
         container.appendChild(listWrap);
 
@@ -590,6 +613,12 @@
         URL.revokeObjectURL(url);
     }
 
+    function getShareUrl() {
+        const payload = { d: getDeposits(), t: getTrades() };
+        const base = location.origin + location.pathname;
+        return base + '?view=1#' + encodeURIComponent(JSON.stringify(payload));
+    }
+
     function shareResult() {
         const deposit = getDeposit();
         const trades = getTrades();
@@ -601,16 +630,17 @@
             'Сделок: ' + trades.length + '\n' +
             'Текущий баланс: ' + balance.toFixed(2) + '\n' +
             (balance >= deposit ? '✅ В плюсе' : '📉 В минусе');
+        const shareUrl = getShareUrl();
         if (tg && tg.openTelegramLink) {
-            tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(location.href) + '&text=' + encodeURIComponent(text));
+            tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(text));
         } else if (navigator.share) {
             navigator.share({
                 title: 'TradeZone',
                 text: text,
-                url: location.href
+                url: shareUrl
             }).catch(() => {});
         } else {
-            navigator.clipboard.writeText(text).then(function () {
+            navigator.clipboard.writeText(text + '\n' + shareUrl).then(function () {
                 if (tg && tg.showPopup) tg.showPopup({ title: 'Скопировано', message: 'Текст итогов скопирован в буфер.' });
                 else alert('Текст скопирован в буфер обмена.');
             });
@@ -638,10 +668,11 @@
             row.className = 'deposit-item';
             const amount = parseNum(d.amount);
             const amountStr = isNaN(amount) ? '0' : amount.toFixed(2);
+            const delBtnHtml = viewOnlyMode ? '' : '<button type="button" class="btn btn-danger btn-sm btn-remove-deposit" data-id="' + d.id + '" title="Удалить">×</button>';
             row.innerHTML =
                 '<span class="deposit-item-date">' + formatDateShort(d.date, d.time) + '</span>' +
                 '<span class="deposit-item-amount">' + amountStr + '</span>' +
-                '<button type="button" class="btn btn-danger btn-sm btn-remove-deposit" data-id="' + d.id + '" title="Удалить">×</button>';
+                delBtnHtml;
             var delBtn = row.querySelector('.btn-remove-deposit');
             if (delBtn) {
                 delBtn.addEventListener('click', function () {
@@ -702,15 +733,44 @@
         if (assets.includes(current)) sel.value = current;
     }
 
+    function parseViewOnlyFromUrl() {
+        const params = new URLSearchParams(location.search);
+        if (params.get('view') !== '1') return;
+        const hash = location.hash.slice(1);
+        if (!hash) {
+            viewOnlyMode = true;
+            return;
+        }
+        try {
+            const data = JSON.parse(decodeURIComponent(hash));
+            snapshotDeposits = Array.isArray(data.d) ? data.d : [];
+            snapshotTrades = Array.isArray(data.t) ? data.t : [];
+            viewOnlyMode = true;
+        } catch (_) {
+            viewOnlyMode = false;
+        }
+    }
+
+    function applyViewOnlyUI() {
+        if (!viewOnlyMode) return;
+        document.body.classList.add('view-only');
+        var badge = document.createElement('div');
+        badge.className = 'view-only-badge';
+        badge.textContent = 'Только просмотр';
+        document.getElementById('app')?.insertBefore(badge, document.getElementById('app').firstChild);
+    }
+
     function init() {
+        parseViewOnlyFromUrl();
         initTelegram();
-        migrateDepositToDeposits();
+        if (!viewOnlyMode) migrateDepositToDeposits();
         updateBalance();
         renderChart();
         renderDepositsList();
         renderTradesList();
         initDepositsHistoryToggle();
         bindEvents();
+        applyViewOnlyUI();
     }
 
     if (document.readyState === 'loading') {
